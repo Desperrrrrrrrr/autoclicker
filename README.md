@@ -29,4 +29,29 @@ python autoclicker.py
 
 ---
 
+## Как собрать один exe-файл (Windows)
+
+1. **Установите pyinstaller**  
+   Если pip не работает напрямую, используйте полный путь (замените `Ваше_Имя_пользователя` и версию Python на свои):
+   ```
+   C:\Users\Ваше_Имя_пользователя\AppData\Roaming\Python\PythonXXX\Scripts\pip.exe install pyinstaller
+   ```
+
+2. **Соберите exe-файл**  
+   Выполните команду:
+   ```
+   python -m PyInstaller --onefile --noconsole autoclicker.py
+   ```
+   - `--onefile` — всё в одном exe
+   - `--noconsole` — не будет черного окна консоли
+
+3. **Готовый файл**  
+   После сборки exe-файл появится в папке `dist`:
+   ```
+   dist/autoclicker.exe
+   ```
+
+4. **Запуск**  
+   Просто запустите `autoclicker.exe` двойным кликом.
+
 by Desper_i9 — [gl-hf.ru](https://gl-hf.ru) 
