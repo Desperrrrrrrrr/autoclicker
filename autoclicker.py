@@ -23,7 +23,13 @@ class AutoClicker:
         self.root.title("")  # Пустой заголовок окна
         self.root.resizable(False, False)
         self.root.attributes('-topmost', False)
-        self.root.geometry('350x520')
+        self.root.geometry('350x445')
+        try:
+            # Устанавливаем эмодзи-иконку (🖱️)
+            self.root.iconbitmap('')  # Очищаем стандартную иконку
+            self.root.iconphoto(True, tk.PhotoImage(data='''R0lGODlhEAAQAPcAAAAAADMAAP///wAAACH5BAEAAAAALAAAAAAQABAAAAIgjI+py+0Po5y02ouz3pwXADs='''))
+        except Exception:
+            pass
         
         # Основной контейнер
         main_frame = ttk.Frame(self.root, padding="5")
@@ -31,37 +37,31 @@ class AutoClicker:
         
         # Крупный заголовок
         self.header_label = ttk.Label(main_frame, text="Автокликер", font=('Arial', 13, 'bold'))
-        self.header_label.grid(row=0, column=0, pady=(0, 5), sticky=tk.N)
+        self.header_label.grid(row=0, column=0, pady=(0, 2), sticky=tk.N)
         
         # Инструкция и статус на одной строке
         instr_status_frame = ttk.Frame(main_frame)
-        instr_status_frame.grid(row=1, column=0, pady=(0, 2), sticky=(tk.W, tk.E))
+        instr_status_frame.grid(row=1, column=0, pady=(0, 1), sticky=(tk.W, tk.E))
         self.instruction_label = ttk.Label(instr_status_frame, text="F6 — старт/стоп", font=('Arial', 9))
         self.instruction_label.pack(side=tk.LEFT, padx=(0, 10))
         self.status_label = ttk.Label(instr_status_frame, text="Выключен", font=('Arial', 9, 'bold'), foreground="#1976d2")
         self.status_label.pack(side=tk.LEFT)
         
-        # Инструкция по выбору точки (отдельная строка, скрыта по умолчанию)
-        self.pick_point_info = ttk.Label(main_frame, text="", font=('Arial', 8), foreground="#1976d2")
-        self.pick_point_info.grid(row=2, column=0, sticky=tk.W)
-        
-        # Чекбокс поверх всех окон
-        self.topmost_var = tk.BooleanVar(value=False)
-        topmost_check = ttk.Checkbutton(main_frame, text="Поверх окон", variable=self.topmost_var, command=self.toggle_topmost)
-        topmost_check.grid(row=3, column=0, sticky=tk.E)
-        
-        # Чекбокс для режима клика по координатам
+        # Чекбоксы режимов и поверх окон — сразу под статусом
+        options_frame = ttk.Frame(main_frame)
+        options_frame.grid(row=2, column=0, pady=(0, 1), sticky=(tk.W, tk.E))
         self.coord_mode_var = tk.BooleanVar(value=False)
-        coord_mode_check = ttk.Checkbutton(main_frame, text="По координатам (фикс)", variable=self.coord_mode_var)
-        coord_mode_check.grid(row=4, column=0, sticky=tk.W)
-        
-        # Чекбокс и поля для режима клика по окну
+        coord_mode_check = ttk.Checkbutton(options_frame, text="По координатам (фикс)", variable=self.coord_mode_var)
+        coord_mode_check.pack(side=tk.LEFT, padx=(0, 8))
         self.window_mode_var = tk.BooleanVar(value=False)
-        window_mode_check = ttk.Checkbutton(main_frame, text="В окне", variable=self.window_mode_var)
-        window_mode_check.grid(row=5, column=0, sticky=tk.W)
+        window_mode_check = ttk.Checkbutton(options_frame, text="В окне", variable=self.window_mode_var)
+        window_mode_check.pack(side=tk.LEFT, padx=(0, 8))
+        self.topmost_var = tk.BooleanVar(value=False)
+        topmost_check = ttk.Checkbutton(options_frame, text="Поверх окон", variable=self.topmost_var, command=self.toggle_topmost)
+        topmost_check.pack(side=tk.LEFT)
         
         window_frame = ttk.Frame(main_frame)
-        window_frame.grid(row=6, column=0, pady=(2, 5), sticky=(tk.W, tk.E))
+        window_frame.grid(row=3, column=0, pady=(1, 2), sticky=(tk.W, tk.E))
         
         ttk.Label(window_frame, text="Заголовок:").grid(row=0, column=0, sticky=tk.W)
         self.window_title_var = tk.StringVar()
@@ -79,14 +79,18 @@ class AutoClicker:
         
         self.pick_point_btn = ttk.Button(window_frame, text="Точка", width=7, command=self.pick_point)
         self.pick_point_btn.grid(row=0, column=6, padx=4)
+
+        # Перемещаю инструкцию ниже координат
+        self.pick_point_info = ttk.Label(main_frame, text="", font=("Arial", 9, "bold"), foreground="#d32f2f")
+        self.pick_point_info.grid(row=4, column=0, sticky=tk.W, pady=(0, 1))
         
         # Статус
         self.cps_label = ttk.Label(main_frame, text="Клики: 0", font=('Arial', 9))
-        self.cps_label.grid(row=7, column=0, pady=2, sticky=tk.W)
+        self.cps_label.grid(row=5, column=0, pady=1, sticky=tk.W)
         
         # Фрейм для пресетов
-        preset_frame = ttk.LabelFrame(main_frame, text="Скорость", padding="3")
-        preset_frame.grid(row=8, column=0, pady=5, sticky=(tk.W, tk.E))
+        preset_frame = ttk.LabelFrame(main_frame, text="Скорость", padding="2")
+        preset_frame.grid(row=6, column=0, pady=2, sticky=(tk.W, tk.E))
         
         presets = [
             ("1 CPS", 1.0),
@@ -97,49 +101,62 @@ class AutoClicker:
             ("MAX", 0)
         ]
         for i, (text, delay) in enumerate(presets):
-            btn = ttk.Button(preset_frame, text=text, width=10, command=lambda d=delay: self.set_delay(d))
-            btn.grid(row=i//2, column=i%2, pady=1, padx=2, sticky=(tk.W, tk.E))
-        preset_frame.columnconfigure(0, weight=1)
-        preset_frame.columnconfigure(1, weight=1)
+            btn = ttk.Button(preset_frame, text=text, width=8, command=lambda d=delay: self.set_delay(d))
+            btn.grid(row=i//3, column=i%3, pady=1, padx=1, sticky=(tk.W, tk.E))
+        for col in range(3):
+            preset_frame.columnconfigure(col, weight=1)
         
         # Фрейм для ручной настройки
         manual_frame = ttk.LabelFrame(main_frame, text="Своя скорость", padding="3")
-        manual_frame.grid(row=9, column=0, pady=5, sticky=(tk.W, tk.E))
-        
-        ttk.Label(manual_frame, text="CPS:").grid(row=0, column=0, pady=2, sticky=tk.W)
-        
+        manual_frame.grid(row=7, column=0, pady=2, sticky=(tk.W, tk.E))
+        manual_inner = ttk.Frame(manual_frame)
+        manual_inner.pack(anchor=tk.CENTER, pady=2)
+        ttk.Label(manual_inner, text="CPS:").pack(side=tk.LEFT, padx=(0, 2))
         self.cps_var = tk.StringVar(value="10")
-        cps_entry = ttk.Entry(manual_frame, textvariable=self.cps_var, width=7)
-        cps_entry.grid(row=0, column=1, pady=2, padx=2, sticky=tk.W)
-        
-        apply_btn = ttk.Button(manual_frame, text="OK", width=5, command=self.apply_manual_cps)
-        apply_btn.grid(row=0, column=2, pady=2, padx=2)
+        cps_entry = ttk.Entry(manual_inner, textvariable=self.cps_var, width=7)
+        cps_entry.pack(side=tk.LEFT, padx=(0, 2))
+        apply_btn = ttk.Button(manual_inner, text="OK", width=4, command=self.apply_manual_cps)
+        apply_btn.pack(side=tk.LEFT)
         
         # Кнопка старт/стоп
         self.start_button = ttk.Button(main_frame, text="Старт/Стоп (F6)", command=self.toggle_clicking)
-        self.start_button.grid(row=10, column=0, pady=4, sticky=(tk.W, tk.E))
+        self.start_button.grid(row=8, column=0, pady=2, sticky=(tk.W, tk.E))
 
         # --- Кнопка мыши ---
         self.button_var = tk.StringVar(value="left")
         button_frame = ttk.LabelFrame(main_frame, text="Кнопка", padding="2")
-        button_frame.grid(row=11, column=0, pady=(2, 0), sticky=(tk.W, tk.E))
+        button_frame.grid(row=9, column=0, pady=(1, 0), sticky=(tk.W, tk.E))
         ttk.Radiobutton(button_frame, text="Левая", variable=self.button_var, value="left").pack(side=tk.LEFT, padx=1)
         ttk.Radiobutton(button_frame, text="Правая", variable=self.button_var, value="right").pack(side=tk.LEFT, padx=1)
         ttk.Radiobutton(button_frame, text="Обе", variable=self.button_var, value="both").pack(side=tk.LEFT, padx=1)
 
         # Текущая скорость
         self.speed_label = ttk.Label(main_frame, text="Текущая скорость: 10 CPS", font=('Arial', 8))
-        self.speed_label.grid(row=12, column=0, pady=2, sticky=tk.W)
+        self.speed_label.grid(row=10, column=0, pady=1, sticky=tk.W)
 
-        # Нижний блок с подписью и ссылкой
+        # Ограничители
+        limit_frame = ttk.LabelFrame(main_frame, text="Ограничители", padding="3")
+        limit_frame.grid(row=11, column=0, pady=(2, 0), sticky=(tk.W, tk.E))
+        ttk.Label(limit_frame, text="Секунд:").pack(side=tk.LEFT, padx=2)
+        self.timer_var = tk.StringVar(value="")
+        ttk.Entry(limit_frame, textvariable=self.timer_var, width=5).pack(side=tk.LEFT, padx=2)
+        ttk.Label(limit_frame, text="Кликов:").pack(side=tk.LEFT, padx=2)
+        self.click_limit_var = tk.StringVar(value="")
+        ttk.Entry(limit_frame, textvariable=self.click_limit_var, width=7).pack(side=tk.LEFT, padx=2)
+
+        # --- Нижний блок: by Desper ---
         bottom_frame = ttk.Frame(main_frame)
-        bottom_frame.grid(row=13, column=0, pady=(6, 0), sticky=(tk.W, tk.E))
-        author_label = ttk.Label(bottom_frame, text="by Desper_i9", font=('Arial', 8, 'normal'))
-        author_label.pack(side=tk.LEFT, padx=(0, 5))
-        link = ttk.Label(bottom_frame, text="gl-hf.ru", foreground="blue", cursor="hand2", font=('Arial', 8, 'underline'))
-        link.pack(side=tk.LEFT)
-        link.bind("<Button-1>", lambda e: webbrowser.open_new("https://gl-hf.ru"))
-        
+        bottom_frame.grid(row=12, column=0, pady=(4, 0), sticky=(tk.E, tk.S))
+        try:
+            font_name = "Google Sans"
+            self.desper_label = ttk.Label(bottom_frame, text="by Desper_i9", foreground="#1976d2", font=(font_name, 9))
+        except Exception:
+            self.desper_label = ttk.Label(bottom_frame, text="by Desper_i9", foreground="#1976d2", font=("Arial", 9))
+        self.desper_label.pack(side=tk.LEFT, padx=(0, 5))
+        self.site_label = ttk.Label(bottom_frame, text="gl-hf.ru", foreground="#1976d2", cursor="hand2", font=("Arial", 9, "underline"))
+        self.site_label.pack(side=tk.LEFT)
+        self.site_label.bind("<Button-1>", lambda e: webbrowser.open_new_tab("https://gl-hf.ru"))
+
         # Горячие клавиши
         keyboard.on_press_key("F6", lambda _: self.toggle_clicking())
         keyboard.on_press_key("F7", lambda _: self.stop_clicking())
@@ -228,7 +245,7 @@ class AutoClicker:
 
     def pick_point(self):
         self.waiting_for_point = True
-        self.pick_point_info.config(text="F8 — выбрать точку мыши")
+        self.pick_point_info.config(text="Нажмите F8 для фиксации координат", foreground="#d32f2f", font=("Arial", 9, "bold"))
         keyboard.on_press_key("F8", self.save_mouse_position)
     
     def save_mouse_position(self, e=None):
@@ -237,12 +254,32 @@ class AutoClicker:
         x, y = pyautogui.position()
         self.x_var.set(str(x))
         self.y_var.set(str(y))
-        self.pick_point_info.config(text="")
+        self.pick_point_info.config(text="", foreground="#1976d2", font=("Arial", 8))
         self.waiting_for_point = False
         keyboard.unhook_key("F8")
     
     def click_loop(self):
         click_time = 0
+        start_time = time.time()
+        clicks_done = 0
+        timer_limit = None
+        click_limit = None
+        try:
+            timer_limit = float(self.timer_var.get()) if self.timer_var.get() else None
+        except ValueError:
+            timer_limit = None
+        try:
+            click_limit = int(self.click_limit_var.get()) if self.click_limit_var.get() else None
+        except ValueError:
+            click_limit = None
+        
+        def check_limits():
+            if timer_limit is not None and (time.time() - start_time) >= timer_limit:
+                return True
+            if click_limit is not None and clicks_done >= click_limit:
+                return True
+            return False
+        
         if self.coord_mode_var.get():
             # Клик по координатам с "прилипанием" мыши
             try:
@@ -269,6 +306,10 @@ class AutoClicker:
                         pass
                     self.click_count += 1
                     click_time = current_time
+                    clicks_done += 1
+                    if check_limits():
+                        self.stop_clicking()
+                        break
                 else:
                     time.sleep(0.0001)
             self.lock_mouse = False
@@ -296,6 +337,10 @@ class AutoClicker:
                         pass
                     self.click_count += 1
                     click_time = current_time
+                    clicks_done += 1
+                    if check_limits():
+                        self.stop_clicking()
+                        break
                 else:
                     time.sleep(0.0001)
         else:
@@ -320,6 +365,10 @@ class AutoClicker:
                         pass
                     self.click_count += 1
                     click_time = current_time
+                    clicks_done += 1
+                    if check_limits():
+                        self.stop_clicking()
+                        break
                 else:
                     time.sleep(0.0001)
         
