@@ -9,6 +9,7 @@ import win32gui
 import pyautogui
 import time
 import ctypes
+from PIL import Image, ImageDraw, ImageFont, ImageTk
 
 class AutoClicker:
     def __init__(self):
@@ -25,9 +26,13 @@ class AutoClicker:
         self.root.attributes('-topmost', False)
         self.root.geometry('350x445')
         try:
-            # Устанавливаем эмодзи-иконку (🖱️)
-            self.root.iconbitmap('')  # Очищаем стандартную иконку
-            self.root.iconphoto(True, tk.PhotoImage(data='''R0lGODlhEAAQAPcAAAAAADMAAP///wAAACH5BAEAAAAALAAAAAAQABAAAAIgjI+py+0Po5y02ouz3pwXADs='''))
+            # Устанавливаем эмодзи-иконку (🦅)
+            img = Image.new('RGBA', (32, 32), (255, 255, 255, 0))
+            font = ImageFont.truetype('seguiemj.ttf', 28)  # стандартный emoji-шрифт Windows
+            draw = ImageDraw.Draw(img)
+            draw.text((0, 0), '🦅', font=font, fill=(0, 0, 0, 255))
+            icon = ImageTk.PhotoImage(img)
+            self.root.iconphoto(True, icon)
         except Exception:
             pass
         
